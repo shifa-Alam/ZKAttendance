@@ -4,14 +4,27 @@
 ///
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
+using WindowsFormsApp1;
+using Newtonsoft.Json;
+using WinForm.Models;
+using System.IO;
+using WinForm.Service;
 
 namespace BioMetrixCore
 {
-    internal class DeviceManipulator
+    internal class DeviceManipulatorNew
     {
+        private IServerService _serverService;
+        public DeviceManipulatorNew()
+        {
+            _serverService = new ServerService();
+        }
 
-        public ICollection<UserInfo> GetAllUserInfo(ZkemClient objZkeeper, int machineNumber)
+        public ICollection<UserInfo> GetAllUserInfo(ZkemClientNew objZkeeper, int machineNumber)
         {
             string sdwEnrollNumber = string.Empty, sName = string.Empty, sPassword = string.Empty, sTmpData = string.Empty;
             int iPrivilege = 0, iTmpLength = 0, iFlag = 0, idwFingerIndex;
@@ -47,7 +60,7 @@ namespace BioMetrixCore
             return lstFPTemplates;
         }
 
-        public ICollection<MachineInfo> GetLogData(ZkemClient objZkeeper, int machineNumber)
+        public ICollection<MachineInfo> GetLogData(ZkemClientNew objZkeeper, int machineNumber)
         {
             string dwEnrollNumber1 = "";
             int dwVerifyMode = 0;
@@ -62,7 +75,7 @@ namespace BioMetrixCore
 
             ICollection<MachineInfo> lstEnrollData = new List<MachineInfo>();
 
-            objZkeeper.ReadAllGLogData(machineNumber);
+            //objZkeeper.ReadAllGLogData(machineNumber);
 
             while (objZkeeper.SSR_GetGeneralLogData(machineNumber, out dwEnrollNumber1, out dwVerifyMode, out dwInOutMode, out dwYear, out dwMonth, out dwDay, out dwHour, out dwMinute, out dwSecond, ref dwWorkCode))
 
@@ -81,7 +94,7 @@ namespace BioMetrixCore
             return lstEnrollData;
         }
 
-        public ICollection<UserIDInfo> GetAllUserID(ZkemClient objZkeeper, int machineNumber)
+        public ICollection<UserIDInfo> GetAllUserID(ZkemClientNew objZkeeper, int machineNumber)
         {
             int dwEnrollNumber = 0;
             int dwEMachineNumber = 0;
@@ -104,7 +117,7 @@ namespace BioMetrixCore
             return lstUserIDInfo;
         }
 
-        public void GetGeneratLog(ZkemClient objZkeeper, int machineNumber, string enrollNo)
+        public void GetGeneratLog(ZkemClientNew objZkeeper, int machineNumber, string enrollNo)
         {
             string name = null;
             string password = null;
@@ -127,8 +140,7 @@ namespace BioMetrixCore
             }
         }
 
-
-        public bool PushUserDataToDevice(ZkemClient objZkeeper, int machineNumber, string enrollNo)
+        public bool PushUserDataToDevice(ZkemClientNew objZkeeper, int machineNumber, string enrollNo)
         {
             string userName = string.Empty;
             string password = string.Empty;
@@ -136,7 +148,7 @@ namespace BioMetrixCore
             return objZkeeper.SSR_SetUserInfo(machineNumber, enrollNo, userName, password, privelage, true);
         }
 
-        public bool UploadFTPTemplate(ZkemClient objZkeeper, int machineNumber, List<UserInfo> lstUserInfo)
+        public bool UploadFTPTemplate(ZkemClientNew objZkeeper, int machineNumber, List<UserInfo> lstUserInfo)
         {
             string sdwEnrollNumber = string.Empty, sName = string.Empty, sTmpData = string.Empty;
             int idwFingerIndex = 0, iPrivilege = 0, iFlag = 1, iUpdateFlag = 1;
@@ -185,7 +197,7 @@ namespace BioMetrixCore
                 return false;
         }
 
-        //public object ClearData(ZkemClient objZkeeper, int machineNumber, ClearFlag clearFlag)
+        //public object ClearData(ZkemClientNew objZkeeper, int machineNumber, ClearFlag clearFlag)
         //{
         //    int iDataFlag = (int)clearFlag;
 
@@ -199,13 +211,12 @@ namespace BioMetrixCore
         //    }
         //}
 
-        public bool ClearGLog(ZkemClient objZkeeper, int machineNumber)
+        public bool ClearGLog(ZkemClientNew objZkeeper, int machineNumber)
         {
             return objZkeeper.ClearGLog(machineNumber);
         }
 
-
-        public string FetchDeviceInfo(ZkemClient objZkeeper, int machineNumber)
+        public string FetchDeviceInfo(ZkemClientNew objZkeeper, int machineNumber)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -261,6 +272,111 @@ namespace BioMetrixCore
 
             return sb.ToString();
         }
+
+
+        public void SyncData(ZkemClientNew objZkeeper, int machineNumber)
+        {
+            try
+            {
+
+                string dwEnrollNumber1 = "";
+                int dwVerifyMode = 0;
+                int dwInOutMode = 0;
+                int dwYear = 0;
+                int dwMonth = 0;
+                int dwDay = 0;
+                int dwHour = 0;
+                int dwMinute = 0;
+                int dwSecond = 0;
+                int dwWorkCode = 0;
+
+                var skipedData = new List<ExternalEmployeeAttendanceLogModel>();
+
+                var filter = new ExternalEmployeeAttendanceLogFilterModel
+                {
+                    MachineNo = machineNumber
+                };
+                var lastData = _serverService.FindLastLogByMachineNo(filter);
+
+                DateTime lastServerData = lastData.Result.AttendanceTime;
+
+                if (lastServerData != null)
+                {
+
+                    objZkeeper.ReadAllGLogData(machineNumber);
+                    while (objZkeeper.SSR_GetGeneralLogData(machineNumber, out dwEnrollNumber1, out dwVerifyMode, out dwInOutMode, out dwYear, out dwMonth, out dwDay, out dwHour, out dwMinute, out dwSecond, ref dwWorkCode))
+
+                    {
+                        var logDate = new DateTime(dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
+
+                        if (lastServerData > logDate) continue;
+
+                        ExternalEmployeeAttendanceLogModel objInfo = new ExternalEmployeeAttendanceLogModel();
+                        objInfo.MachineCode = FetchDeviceInfo(objZkeeper, machineNumber);
+                        objInfo.MachineNo = machineNumber;
+                        objInfo.EmployeeCode = dwEnrollNumber1;
+                        objInfo.AttendanceTime = logDate;
+
+                        skipedData.Add(objInfo);
+                    }
+
+                    _serverService.SaveRangeAsync(skipedData);
+                }
+
+
+                //pushData(skipedData);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+
+        //private static void pushData(IEnumerable<ExternalEmployeeAttendanceLogModel> SkipedData)
+        //{
+        //    var baseUrl = string.Empty;
+        //    var settingInfo = JsonConvert.DeserializeObject<SettingInfo>(File.ReadAllText(@"settingInfo.json"));
+
+        //    if (settingInfo != null)
+        //    {
+        //        baseUrl = settingInfo.Url;
+        //    }
+        //    foreach (var attendanceLogModel in SkipedData)
+        //    {
+        //        attendanceLogModel.HrConfigId = settingInfo.HrConfigId;
+        //        var json = JsonConvert.SerializeObject(attendanceLogModel);
+        //        _ = CallWebAPIAsync(json, baseUrl);
+        //    }
+
+
+
+
+        //}
+
+
+        //private static async Task CallWebAPIAsync(string jsonData, string baseUrl)
+        //{
+        //    try
+        //    {
+        //        HttpClient client = new HttpClient();
+        //        client.BaseAddress = new Uri(baseUrl);
+        //        client.DefaultRequestHeaders.Accept.Clear();
+        //        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        //        var response = await client.PostAsync("api/ExternalHrAttendance/SaveEmployeeAttendanceLogAsync", new StringContent(jsonData, Encoding.UTF8, "application/json"));
+
+        //        if (response != null)
+        //        {
+        //            Console.WriteLine(response.ToString());
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+
+        //        throw;
+        //    }
+        //}
 
     }
 }

@@ -10,7 +10,8 @@ namespace WindowsFormsApp1
         public DateTime AttendanceTime { get; set; }
         public bool State { get; set; }
         //public bool IsMachine { get; set; }
-        public string MachineNo { get; set; }
+        public int MachineNo { get; set; }
+        public string MachineCode { get; set; }
         public string EmployeeCode { get; set; }
     }
 }

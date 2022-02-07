@@ -10,7 +10,8 @@ namespace WinForm.Models
     {
         public string Ip { get; set; }
         public string Port { get; set; }
-        public string MachineNo { get; set; }
+        public int MachineNo { get; set; }
+        public string MachineInfo { get; set; }
         public bool Status { get; set; }
 
     }

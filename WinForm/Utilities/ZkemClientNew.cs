@@ -3,6 +3,7 @@
 ///    Email: dablackscarlet@gmail.com
 ///
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -12,18 +13,27 @@ using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Text;
 using WinForm.Models;
+using WinForm.Service;
 
 namespace BioMetrixCore
 {
-    public class ZkemClient : IZKEM
+    public class ZkemClientNew : IZKEM
     {
+        private int machineNo;
+        public string MachineCode { get; set; }
         Action<object, string> RaiseDeviceEvent;
+        private IServerService _serverService;
 
-        public ZkemClient(Action<object, string> RaiseDeviceEvent)
-        { this.RaiseDeviceEvent = RaiseDeviceEvent; }
+        public ZkemClientNew(Action<object, string> RaiseDeviceEvent)
+        {
+            this.RaiseDeviceEvent = RaiseDeviceEvent;
+            _serverService = new ServerService();
+
+        }
 
 
         CZKEM objCZKEM = new CZKEM();
+
 
         #region 'What we will be using'
 
@@ -75,6 +85,25 @@ namespace BioMetrixCore
             return false;
         }
 
+        public bool Connect_NetNew(string IPAdd, int Port, int machineNo)
+        {
+            if (objCZKEM.Connect_Net(IPAdd, Port))
+            {
+                //65535, 32767
+                if (objCZKEM.RegEvent(machineNo, 32767))
+                {
+                    // [ Register your events here ]
+                    // [ Go through the _IZKEMEvents_Event class for a complete list of events
+                    objCZKEM.OnConnected += ObjCZKEM_OnConnected;
+                    objCZKEM.OnDisConnected += objCZKEM_OnDisConnected;
+                    objCZKEM.OnEnrollFinger += ObjCZKEM_OnEnrollFinger;
+                    objCZKEM.OnFinger += ObjCZKEM_OnFinger;
+                    objCZKEM.OnAttTransactionEx += new _IZKEMEvents_OnAttTransactionExEventHandler(zkemClient_OnAttTransactionEx);
+                }
+                return true;
+            }
+            return false;
+        }
         private void ObjCZKEM_OnFinger()
         { }
 
@@ -88,64 +117,63 @@ namespace BioMetrixCore
 
         private void zkemClient_OnAttTransactionEx(string EnrollNumber, int IsInValid, int AttState, int VerifyMethod, int Year, int Month, int Day, int Hour, int Minute, int Second, int WorkCode)
         {
-            
+
+            var logs = new List<ExternalEmployeeAttendanceLogModel>();
             var employeeAttendanceLog = new ExternalEmployeeAttendanceLogModel
             {
                 EmployeeCode = EnrollNumber,
-                State = (AttState == 0)? false : true,
-                AttendanceTime = new DateTime(Year,Month,Day,Hour,Minute,Second)
-                //MachineCode = MachineNumber
+                State = (AttState == 0) ? false : true,
+                AttendanceTime = new DateTime(Year, Month, Day, Hour, Minute, Second),
+                MachineNo = MachineNumber,
+                MachineCode = MachineCode
+
+
 
             };
-            //ApplyConfigFileBl(employeeAttendanceLog);
+            logs.Add(employeeAttendanceLog);
+            _serverService.SaveRangeAsync(logs);
 
-            //var currentDirectory = Directory.GetCurrentDirectory();
-            //var configFile = currentDirectory.ToString() + "\\" + "config.txt";
+            //objCZKEM.MachineNumber.
+
+
             //var baseUrl = string.Empty;
-            //if (File.Exists(configFile))
+            //var settingInfo = JsonConvert.DeserializeObject<SettingInfo>(File.ReadAllText(@"settingInfo.json"));
+
+            //if (settingInfo != null)
             //{
-            //    string[] lines = File.ReadAllLines(configFile);
-            //    employeeAttendanceLog.HrConfigId = Convert.ToInt32(lines[0]);
-            //    baseUrl = lines[1];
-
+            //    employeeAttendanceLog.HrConfigId = settingInfo.HrConfigId;
+            //    baseUrl = settingInfo.Url;
             //}
+            //logs.Add(employeeAttendanceLog);
+            //var json = JsonConvert.SerializeObject(logs);
 
-            var baseUrl = string.Empty;
-            //var currentDirectory = Directory.GetCurrentDirectory();
-            //var settingInfo = JsonConvert.DeserializeObject<SettingInfo>(File.ReadAllText(currentDirectory + "\\" + "settingInfo.json"));
-            var settingInfo = JsonConvert.DeserializeObject<SettingInfo>(File.ReadAllText(@"settingInfo.json"));
+            //_=CallWebAPIAsync(json, baseUrl);
+            //server Call
 
-            if (settingInfo != null)
-            {
-                employeeAttendanceLog.HrConfigId = settingInfo.HrConfigId;
-                baseUrl = settingInfo.Url;
-            }
-            var json = JsonConvert.SerializeObject(employeeAttendanceLog);
-           _=CallWebAPIAsync(json, baseUrl);
         }
 
 
-        private static async Task CallWebAPIAsync(string jsonData,string baseUrl)
-        {
-            try
-            {
-                HttpClient client = new HttpClient();
-                client.BaseAddress = new Uri(baseUrl);
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var response = await client.PostAsync("api/ExternalHrAttendance/SaveEmployeeAttendanceLogAsync", new StringContent(jsonData, Encoding.UTF8, "application/json"));
+        //private static async Task CallWebAPIAsync(string jsonData,string baseUrl)
+        //{
+        //    try
+        //    {
+        //        HttpClient client = new HttpClient();
+        //        client.BaseAddress = new Uri(baseUrl);
+        //        client.DefaultRequestHeaders.Accept.Clear();
+        //        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        //        var response = await client.PostAsync("api/ExternalHrAttendance/SaveEmployeeAttendanceLogRangeAsync", new StringContent(jsonData, Encoding.UTF8, "application/json"));
 
-                if (response != null)
-                {
-                    Console.WriteLine(response.ToString());
-                }
-            }
-            catch (Exception e)
-            {
+        //        if (response != null)
+        //        {
+        //            Console.WriteLine(response.ToString());
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
 
-                throw;
-            }
-        }
+        //        throw;
+        //    }
+        //}
 
 
         void objCZKEM_OnDisConnected()
@@ -893,12 +921,13 @@ namespace BioMetrixCore
         {
             get
             {
-                throw new NotImplementedException();
+              
+                return machineNo;
             }
 
             set
             {
-                throw new NotImplementedException();
+                machineNo=value;
             }
         }
 

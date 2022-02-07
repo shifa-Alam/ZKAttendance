@@ -16,12 +16,14 @@ namespace WinForm
     public partial class Form1 : MaterialForm
     {
         private readonly MaterialSkinManager skinManager;
+        //private var client
 
         //private IList<Machine> machines = new List<Machine>();
 
 
-        DeviceManipulator manipulator = new DeviceManipulator();
-        //public ZkemClient objZkeeper;
+        DeviceManipulatorNew manipulator = new DeviceManipulatorNew();
+        //private IList<ZkemClientNew> clients = new List<ZkemClientNew>();
+        //public ZkemClientNew objZkeeper;
         private bool isDeviceConnected = false;
 
         public bool IsDeviceConnected
@@ -64,14 +66,19 @@ namespace WinForm
                 var settingInfo = JsonConvert.DeserializeObject<SettingInfo>(File.ReadAllText(@"settingInfo.json"));
                 foreach (var machine in settingInfo.MachineList)
                 {
-                    var client = new ZkemClient(RaiseDeviceEvent);
-                    machine.Status = client.Connect_Net(machine.Ip, Convert.ToInt32(machine.Port));
+                    var objZkeeper = new ZkemClientNew(RaiseDeviceEvent);
+                    objZkeeper.MachineNumber = machine.MachineNo;
+                    machine.Status = objZkeeper.Connect_NetNew(machine.Ip, Convert.ToInt32(machine.Port), machine.MachineNo);
                     if (!machine.Status)
                     {
                         continue;
                     }
-                    machine.MachineNo = manipulator.FetchDeviceInfo(client, 1);
-                }       
+                    machine.MachineInfo = manipulator.FetchDeviceInfo(objZkeeper, machine.MachineNo);
+                    objZkeeper.MachineCode = machine.MachineInfo;
+                    //manipulator.SyncData(objZkeeper, machine.MachineNo);
+                    //machines.Add(machine);
+                    //clients.Add(objZkeeper);
+                }
 
                 //message.Text = "Successfully Connected!";
                 machineList.DataSource = settingInfo.MachineList;
@@ -80,7 +87,7 @@ namespace WinForm
             {
                 message.Text = e.Message;
             }
-            
+
 
         }
 
@@ -114,6 +121,32 @@ namespace WinForm
         {
 
 
+        }
+        private void SyncDataClick(object sender, EventArgs e)
+        {
+
+            DataSync();
+        }
+
+        private void DataSync()
+        {
+            try
+            {
+                
+                
+                //foreach (var client in clients)
+                //{
+                //    var i = 0;
+                //    manipulator.SyncData(client, machines[i].MachineNo);
+                //    i = i + 1;
+                //}
+
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
         //private void machineList_CellContentClick(object sender, DataGridViewCellEventArgs e)
         //{

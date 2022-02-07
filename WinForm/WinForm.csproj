@@ -101,6 +101,9 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\ExternalEmployeeAttendanceLogFilterModel.cs" />
+    <Compile Include="Service\ServerService.cs" />
+    <Compile Include="Service\IServerService.cs" />
     <Compile Include="Info\DeviceTimeInfo.cs" />
     <Compile Include="Info\MachineInfo.cs" />
     <Compile Include="Info\UserIDInfo.cs" />
@@ -110,8 +113,10 @@
     <Compile Include="Models\SettingInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\DeviceManipulatorNew.cs" />
     <Compile Include="Utilities\DeviceManipulator.cs" />
     <Compile Include="Utilities\UniversalStatic.cs" />
+    <Compile Include="Utilities\ZkemClientNew.cs" />
     <Compile Include="Utilities\ZkemClient.cs" />
     <EmbeddedResource Include="DialogForm.resx">
       <DependentUpon>DialogForm.cs</DependentUpon>
