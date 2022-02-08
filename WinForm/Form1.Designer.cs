@@ -31,7 +31,6 @@ namespace WinForm
         {
             this.machineList = new System.Windows.Forms.DataGridView();
             this.message = new MaterialSkin.Controls.MaterialTextBox();
-            this.SyncButton = new MaterialSkin.Controls.MaterialButton();
             ((System.ComponentModel.ISupportInitialize)(this.machineList)).BeginInit();
             this.SuspendLayout();
             // 
@@ -62,32 +61,11 @@ namespace WinForm
             this.message.Text = "";
             this.message.TrailingIcon = null;
             // 
-            // SyncButton
-            // 
-            this.SyncButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.SyncButton.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.SyncButton.Depth = 0;
-            this.SyncButton.HighEmphasis = true;
-            this.SyncButton.Icon = null;
-            this.SyncButton.Location = new System.Drawing.Point(514, 25);
-            this.SyncButton.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.SyncButton.MouseState = MaterialSkin.MouseState.HOVER;
-            this.SyncButton.Name = "SyncButton";
-            this.SyncButton.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.SyncButton.Size = new System.Drawing.Size(97, 36);
-            this.SyncButton.TabIndex = 9;
-            this.SyncButton.Text = "Sync Data";
-            this.SyncButton.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.SyncButton.UseAccentColor = false;
-            this.SyncButton.UseVisualStyleBackColor = true;
-            this.SyncButton.Click += new System.EventHandler(this.SyncDataClick);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1297, 535);
-            this.Controls.Add(this.SyncButton);
             this.Controls.Add(this.message);
             this.Controls.Add(this.machineList);
             this.ForeColor = System.Drawing.SystemColors.ControlText;
@@ -97,14 +75,12 @@ namespace WinForm
             this.Text = "Rite Attendance";
             ((System.ComponentModel.ISupportInitialize)(this.machineList)).EndInit();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
         private System.Windows.Forms.DataGridView machineList;
         private MaterialSkin.Controls.MaterialTextBox message;
-        private MaterialSkin.Controls.MaterialButton SyncButton;
     }
 }
 

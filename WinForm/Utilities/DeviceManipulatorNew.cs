@@ -294,7 +294,8 @@ namespace BioMetrixCore
 
                 var filter = new ExternalEmployeeAttendanceLogFilterModel
                 {
-                    MachineNo = machineNumber
+                    MachineNo = machineNumber,
+                    MachineCode = FetchDeviceInfo(objZkeeper,machineNumber)
                 };
                 var lastData = _serverService.FindLastLogByMachineNo(filter);
 
@@ -307,20 +308,26 @@ namespace BioMetrixCore
                     while (objZkeeper.SSR_GetGeneralLogData(machineNumber, out dwEnrollNumber1, out dwVerifyMode, out dwInOutMode, out dwYear, out dwMonth, out dwDay, out dwHour, out dwMinute, out dwSecond, ref dwWorkCode))
 
                     {
+                        //var  = ;
+                        //var state = dwInOutMode;
+                        //if(dwVerifyMode)
+
                         var logDate = new DateTime(dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
 
-                        if (lastServerData > logDate) continue;
+                        if (lastServerData >= logDate) continue;
 
                         ExternalEmployeeAttendanceLogModel objInfo = new ExternalEmployeeAttendanceLogModel();
                         objInfo.MachineCode = FetchDeviceInfo(objZkeeper, machineNumber);
                         objInfo.MachineNo = machineNumber;
                         objInfo.EmployeeCode = dwEnrollNumber1;
                         objInfo.AttendanceTime = logDate;
+                        objInfo.State = dwInOutMode>0? true:false;
 
                         skipedData.Add(objInfo);
                     }
 
-                    _serverService.SaveRangeAsync(skipedData);
+                    if (skipedData.Count>0) _serverService.SaveRangeAsync(skipedData);
+
                 }
 
 

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -92,16 +93,20 @@ namespace WinForm.Service
                 client.BaseAddress = new Uri(baseUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var response =  await client.PostAsync("api/ExternalHrAttendance/FindLastLogByMachineNoAsync", new StringContent(json, Encoding.UTF8, "application/json"));
 
-                var resultString = await response.Content.ReadAsStringAsync();
-                var info = JsonConvert.DeserializeObject<ExternalEmployeeAttendanceLogModel>(resultString);
+                var response =  client.PostAsync("api/ExternalHrAttendance/FindLastLogByMachineNoAsync", new StringContent(json, Encoding.UTF8, "application/json"));
 
-                return info ; 
+                var contentString = response.Result.Content.ReadAsStringAsync().Result;
+                //var resultString = response.Result;
+                var info = JsonConvert.DeserializeObject<ExternalEmployeeAttendanceLogModel>(contentString);
+
+                return info;
+
+
             }
-            catch (Exception )
+            catch (Exception e)
             {
-               
+               Console.WriteLine(e);
                 throw;
             }
         }

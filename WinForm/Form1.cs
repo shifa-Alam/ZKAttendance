@@ -75,7 +75,7 @@ namespace WinForm
                     }
                     machine.MachineInfo = manipulator.FetchDeviceInfo(objZkeeper, machine.MachineNo);
                     objZkeeper.MachineCode = machine.MachineInfo;
-                    //manipulator.SyncData(objZkeeper, machine.MachineNo);
+                    manipulator.SyncData(objZkeeper, machine.MachineNo);
                     //machines.Add(machine);
                     //clients.Add(objZkeeper);
                 }
