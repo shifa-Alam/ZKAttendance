@@ -1,18 +1,13 @@
-﻿///
-///    Experimented By : Ozesh Thapa
-///    Email: dablackscarlet@gmail.com
-///
+﻿
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using WindowsFormsApp1;
-using Newtonsoft.Json;
 using WinForm.Models;
-using System.IO;
 using WinForm.Service;
+using Message = WinForm.Models.Message;
 
 namespace BioMetrixCore
 {
@@ -274,7 +269,7 @@ namespace BioMetrixCore
         }
 
 
-        public void SyncData(ZkemClientNew objZkeeper, int machineNumber)
+        public async Task SyncData(ZkemClientNew objZkeeper, int machineNumber)
         {
             try
             {
@@ -295,22 +290,18 @@ namespace BioMetrixCore
                 var filter = new ExternalEmployeeAttendanceLogFilterModel
                 {
                     MachineNo = machineNumber,
-                    MachineCode = FetchDeviceInfo(objZkeeper,machineNumber)
+                    MachineCode = FetchDeviceInfo(objZkeeper, machineNumber)
                 };
                 var lastData = _serverService.FindLastLogByMachineNo(filter);
-
-                DateTime lastServerData = lastData.Result.AttendanceTime;
-
-                if (lastServerData != null)
+                
+                if (lastData.Result != null)
                 {
+                    DateTime lastServerData = lastData.Result.AttendanceTime;
 
                     objZkeeper.ReadAllGLogData(machineNumber);
                     while (objZkeeper.SSR_GetGeneralLogData(machineNumber, out dwEnrollNumber1, out dwVerifyMode, out dwInOutMode, out dwYear, out dwMonth, out dwDay, out dwHour, out dwMinute, out dwSecond, ref dwWorkCode))
 
                     {
-                        //var  = ;
-                        //var state = dwInOutMode;
-                        //if(dwVerifyMode)
 
                         var logDate = new DateTime(dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
 
@@ -321,17 +312,22 @@ namespace BioMetrixCore
                         objInfo.MachineNo = machineNumber;
                         objInfo.EmployeeCode = dwEnrollNumber1;
                         objInfo.AttendanceTime = logDate;
-                        objInfo.State = dwInOutMode>0? true:false;
+                        objInfo.State = dwInOutMode > 0 ? true : false;
 
                         skipedData.Add(objInfo);
                     }
 
-                    if (skipedData.Count>0) _serverService.SaveRangeAsync(skipedData);
+                    if (skipedData.Count > 0)
+                    {
+                        _ = _serverService.SaveRangeAsync(skipedData);
+
+                    }
 
                 }
-
-
-                //pushData(skipedData);
+                else
+                {
+                    Message.ErrorMessage = "Please Check Your Setting File carefully!";
+                }
             }
             catch (Exception)
             {
@@ -339,51 +335,6 @@ namespace BioMetrixCore
                 throw;
             }
         }
-
-
-        //private static void pushData(IEnumerable<ExternalEmployeeAttendanceLogModel> SkipedData)
-        //{
-        //    var baseUrl = string.Empty;
-        //    var settingInfo = JsonConvert.DeserializeObject<SettingInfo>(File.ReadAllText(@"settingInfo.json"));
-
-        //    if (settingInfo != null)
-        //    {
-        //        baseUrl = settingInfo.Url;
-        //    }
-        //    foreach (var attendanceLogModel in SkipedData)
-        //    {
-        //        attendanceLogModel.HrConfigId = settingInfo.HrConfigId;
-        //        var json = JsonConvert.SerializeObject(attendanceLogModel);
-        //        _ = CallWebAPIAsync(json, baseUrl);
-        //    }
-
-
-
-
-        //}
-
-
-        //private static async Task CallWebAPIAsync(string jsonData, string baseUrl)
-        //{
-        //    try
-        //    {
-        //        HttpClient client = new HttpClient();
-        //        client.BaseAddress = new Uri(baseUrl);
-        //        client.DefaultRequestHeaders.Accept.Clear();
-        //        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        //        var response = await client.PostAsync("api/ExternalHrAttendance/SaveEmployeeAttendanceLogAsync", new StringContent(jsonData, Encoding.UTF8, "application/json"));
-
-        //        if (response != null)
-        //        {
-        //            Console.WriteLine(response.ToString());
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-
-        //        throw;
-        //    }
-        //}
 
     }
 }

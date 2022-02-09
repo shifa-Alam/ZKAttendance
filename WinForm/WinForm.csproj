@@ -101,6 +101,7 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\Message.cs" />
     <Compile Include="Models\ExternalEmployeeAttendanceLogFilterModel.cs" />
     <Compile Include="Service\ServerService.cs" />
     <Compile Include="Service\IServerService.cs" />

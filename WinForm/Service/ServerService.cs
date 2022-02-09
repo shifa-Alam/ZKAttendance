@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -13,30 +11,12 @@ using WinForm.Models;
 
 namespace WinForm.Service
 {
-    class ServerService:IServerService
+    class ServerService : IServerService
     {
-        //private string jsonData;
-
-        public async Task CallWebAPIAsync(string jsonData, string baseUrl)
-        {
-            try
-            {
-                if (jsonData == null) throw new ArgumentNullException(nameof(jsonData));
-                if (baseUrl == null) throw new ArgumentNullException(nameof(baseUrl));
-
-
-               
-            }
-            catch (Exception )
-            {
-               
-                throw;
-            }
-        }
 
         public async Task SaveRangeAsync(IList<ExternalEmployeeAttendanceLogModel> logs)
         {
-            
+
             try
             {
 
@@ -52,7 +32,7 @@ namespace WinForm.Service
                 {
                     log.HrConfigId = settingInfo.HrConfigId;
                 }
-                
+
                 var json = JsonConvert.SerializeObject(logs);
 
                 HttpClient client = new HttpClient();
@@ -67,15 +47,16 @@ namespace WinForm.Service
                 }
 
             }
-            catch (Exception )
+            catch (Exception)
             {
-               
-                throw;
+
+                //throw;
             }
         }
 
         public async Task<ExternalEmployeeAttendanceLogModel> FindLastLogByMachineNo(ExternalEmployeeAttendanceLogFilterModel filter)
         {
+
             try
             {
 
@@ -94,21 +75,22 @@ namespace WinForm.Service
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                var response =  client.PostAsync("api/ExternalHrAttendance/FindLastLogByMachineNoAsync", new StringContent(json, Encoding.UTF8, "application/json"));
-
+                var response = client.PostAsync("api/ExternalHrAttendance/FindLastLogByMachineNoAsync", new StringContent(json, Encoding.UTF8, "application/json"));
                 var contentString = response.Result.Content.ReadAsStringAsync().Result;
-                //var resultString = response.Result;
-                var info = JsonConvert.DeserializeObject<ExternalEmployeeAttendanceLogModel>(contentString);
+                var responseData = JsonConvert.DeserializeObject<ExternalEmployeeAttendanceLogModel>(contentString);
 
-                return info;
+                return responseData;
 
 
             }
             catch (Exception e)
             {
-               Console.WriteLine(e);
-                throw;
+                Console.WriteLine(e);
+                //throw;
+                return null;
             }
+            
+
         }
     }
 }

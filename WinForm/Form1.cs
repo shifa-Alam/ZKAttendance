@@ -1,13 +1,11 @@
 ﻿using MaterialSkin.Controls;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Windows.Forms;
 using MaterialSkin;
 using BioMetrixCore;
 using WinForm.Models;
 using System.IO;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace WinForm
 {
@@ -50,15 +48,15 @@ namespace WinForm
             skinManager.AddFormToManage(this);
             skinManager.Theme = MaterialSkinManager.Themes.LIGHT;
             skinManager.ColorScheme = new ColorScheme(Primary.Green900, Primary.BlueGrey900, Primary.Blue500, Accent.Orange700, TextShade.WHITE);
-            ConnectToMachine();
+            _ =  ConnectToMachineAsync();
         }
 
         private void connectMachineClick(object sender, EventArgs e)
         {
-            ConnectToMachine();
+            _ = ConnectToMachineAsync();
         }
 
-        private void ConnectToMachine()
+        public  async Task   ConnectToMachineAsync()
         {
             try
             {
@@ -82,6 +80,7 @@ namespace WinForm
 
                 //message.Text = "Successfully Connected!";
                 machineList.DataSource = settingInfo.MachineList;
+                message.Text = Message.ErrorMessage;
             }
             catch (Exception e)
             {
