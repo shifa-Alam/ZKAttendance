@@ -73,14 +73,15 @@ namespace WinForm
                     }
                     machine.MachineInfo = manipulator.FetchDeviceInfo(objZkeeper, machine.MachineNo);
                     objZkeeper.MachineCode = machine.MachineInfo;
-                    manipulator.SyncData(objZkeeper, machine.MachineNo);
+                    _ = manipulator.SyncData(objZkeeper, machine.MachineNo);
                     //machines.Add(machine);
                     //clients.Add(objZkeeper);
                 }
 
-                //message.Text = "Successfully Connected!";
+                
                 machineList.DataSource = settingInfo.MachineList;
-                message.Text = Message.ErrorMessage;
+                message.Text = "Successfully Connected!";
+
             }
             catch (Exception e)
             {

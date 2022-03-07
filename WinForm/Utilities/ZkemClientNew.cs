@@ -121,7 +121,7 @@ namespace BioMetrixCore
             var logs = new List<ExternalEmployeeAttendanceLogModel>();
             var employeeAttendanceLog = new ExternalEmployeeAttendanceLogModel
             {
-                EmployeeCode = EnrollNumber,
+                AttendanceCode = EnrollNumber,
                 State = (AttState == 0) ? false : true,
                 AttendanceTime = new DateTime(Year, Month, Day, Hour, Minute, Second),
                 MachineNo = MachineNumber,

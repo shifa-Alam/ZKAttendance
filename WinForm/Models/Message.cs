@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace WinForm.Models
 {
-    public  class Message
+    public static  class Message
     {
         public static string SuccessMessage { get; set; }
-        public static string ErrorMessage { get; set; }
+        public static string ErrorMessage;
     }
 }

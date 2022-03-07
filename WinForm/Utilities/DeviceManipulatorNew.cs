@@ -7,7 +7,7 @@ using System.Windows.Forms;
 using WindowsFormsApp1;
 using WinForm.Models;
 using WinForm.Service;
-using Message = WinForm.Models.Message;
+
 
 namespace BioMetrixCore
 {
@@ -310,7 +310,7 @@ namespace BioMetrixCore
                         ExternalEmployeeAttendanceLogModel objInfo = new ExternalEmployeeAttendanceLogModel();
                         objInfo.MachineCode = FetchDeviceInfo(objZkeeper, machineNumber);
                         objInfo.MachineNo = machineNumber;
-                        objInfo.EmployeeCode = dwEnrollNumber1;
+                        objInfo.AttendanceCode = dwEnrollNumber1;
                         objInfo.AttendanceTime = logDate;
                         objInfo.State = dwInOutMode > 0 ? true : false;
 
@@ -324,15 +324,14 @@ namespace BioMetrixCore
                     }
 
                 }
-                else
-                {
-                    Message.ErrorMessage = "Please Check Your Setting File carefully!";
-                }
-            }
-            catch (Exception)
-            {
 
-                throw;
+                
+               
+            }
+            catch (Exception )
+            {
+                throw new Exception("Please Check Your Setting File Carefully!");
+                //throw;
             }
         }
 

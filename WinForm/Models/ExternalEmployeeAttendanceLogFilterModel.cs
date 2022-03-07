@@ -12,7 +12,7 @@ namespace WindowsFormsApp1
         ////public bool IsMachine { get; set; }
         //public long MachineNo { get; set; }
         //public string MachineCode { get; set; }
-        //public string EmployeeCode { get; set; }
+        //public string AttendanceCode { get; set; }
 
 
         public long Id { get; set; }
